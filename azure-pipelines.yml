@@ -1,0 +1,38 @@
+variables:
+  webAppName: 'rac-fileupload-web-2-$(Environment.Name)'
+  resourceGroupName: 'rac-demo-app'
+  sonarCloudExtraProperties: ''
+  coverletCoverageExclusions: ''
+
+# GitHub Repo that conatins build templates. Reference https://docs.microsoft.com/en-us/azure/devops/pipelines/process/templates?view=vsts#using-other-repositories
+resources:
+  repositories:
+  - repository: azureDevOpsTemplates
+    type: github
+    name: janisBerz/rac-azure-devops-templates
+    endpoint: 'janisBerz'
+    ref: master # optional ref to pin to
+
+trigger:
+  branches:
+    include:
+      - master
+      - refs/tags/v*
+pr:
+- master
+
+# Build step
+stages:
+- stage: Build
+  jobs:
+  - template: jobs/dotNetCore.yml@azureDevOpsTemplates # Template reference
+    parameters:
+      webAppName: '$(webAppName)'
+      sonarCloudExtraProperties: $(sonarCloudExtraProperties)
+      coverletCoverageExclusions: $(coverletCoverageExclusions)
+
+# Deployment steps
+- template: jobs/deployment.yml@azureDevOpsTemplates
+  parameters:
+    webAppName: '$(webAppName)'
+
